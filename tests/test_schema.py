@@ -16,7 +16,7 @@ import pytest
 from sqlalchemy import create_engine, inspect, text
 
 SYNC_URL = os.environ.get(
-    "DATABASE_URL_SYNC", "postgresql+psycopg2://postgres:postgres@localhost:5432/analytics"
+    "DATABASE_URL_SYNC", "postgresql+psycopg2://postgres:postgres@localhost:5432/test_db"
 )
 
 
