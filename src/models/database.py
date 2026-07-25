@@ -42,7 +42,9 @@ class Event(Base):
         Index(
             "idx_events_anomalies",
             occurred_at.desc(),
-            postgresql_where=is_anomaly.is_(True),  # partial index — the point of the ticket
+            postgresql_where=is_anomaly.is_(
+                True
+            ),  # partial index — the point of the ticket
         ),
     )
 
