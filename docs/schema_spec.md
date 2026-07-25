@@ -78,4 +78,3 @@ recent_anomalies	Seq Scan or Index Only Scan (post-vacuum)	count(*) needs visibi
 per_user_history	Index Scan, no Sort node	composite (user_id, occurred_at DESC) returns rows pre-sorted — the leftmost-prefix win
 time_window_wide	Seq Scan	~50% of rows → too many to make an index worthwhile → Seq Scan is optimal
 time_window_narrow	Index Scan	~3% of rows → selective enough that the index wins → the tipping point
-
