@@ -6,10 +6,10 @@ No database required — these are pure validation tests.
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-
+import sys
 import pytest
 from pydantic import ValidationError
-
+from pathlib import Path
 from src.models.schemas import (
     AnomalyResponse,
     EventBulkCreate,
@@ -18,6 +18,9 @@ from src.models.schemas import (
     ErrorResponse,
     BatchReceipt,
 )
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def valid_event(**overrides) -> dict:
