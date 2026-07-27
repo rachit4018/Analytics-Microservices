@@ -15,8 +15,16 @@
 ## MICRO-1.3 — validation
 
 TODO(dev): add one line each for —
-  - rejecting naive datetimes rather than assuming UTC
+  - rejecting naive datetimes rather than assuming UTC from client side
+  it eliminates ambiguity (No assumption), catches client side bugs, Idempotency
+
   - allowing 5 min of future clock skew rather than zero
+  no two server has exact time diff. 5 minutes gives to handle network latency and imperfectly sync clocks, also 0 breaks valid traffic due to minor clock difference where as 1 hour opens door for data manipulation, such as clients reporting events that has not happend.
   - extra="forbid" rather than ignoring unknown fields
+  prevents ambigeuous fields like urse_id rather later throwing missing field error, prevents mass assignment vulneabilities, saves bandwidth in case of client sending huge payload and then servcer parsing it .
   - separate Create and Response models rather than one shared model
+  the fields can be different and not all the fields needed to show on client side, saves bandwidth and again errors can be easily managed.EventCreate omitting is_anomaly/anomaly_score means a client physically cannot claim their own fraudulent transaction is non-anomalous. Lead with that: "Separate models let the API accept only client-owned fields (Create) while returning server-owned ones (Response) — a client cannot set is_anomaly or anomaly_score, which would otherwise be a data-integrity hole. Also trims response payloads to what each consumer needs."
   - Decimal for amount rather than float
+ float is base-2, and the problem is that many base-10 decimals (like 0.1) have no exact binary representation, so they're stored as tiny approximations that accumulate rounding error. Fix: "Money needs exact decimal representation. Floats are binary and can't represent values like 0.10 exactly, so rounding errors accumulate — unacceptable for financial amounts. Decimal stores base-10 exactly
+ - Why does extra="forbid" belong on EventCreate but not EventResponse?
+ Exactly right. Requests come from the client — untrusted, so you lock the door with extra="forbid". Responses go to the client, built from your own trusted ORM objects — nothing to defend against, and forbidding extras would just make the model brittle when you add a column later. Data direction determines trust, trust determines strictnesss
