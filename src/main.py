@@ -3,7 +3,9 @@ from src.core.logging import setup_logging
 from src.middleware.tracing import TracingMiddleware
 from src.middleware.error_handler import CatchAllMiddleware
 from src.middleware.metrics import MetricsMiddleware, metrics_endpoint
-
+from contextlib import asynccontextmanager
+from src.models.session import engine
+from src.api.health import router as health_router
 from src.middleware.error_handler import register_error_handlers
 
 app = FastAPI(title="Analytics Microservices")
@@ -22,6 +24,16 @@ register_error_handlers(app)
 app.add_route("/metrics", lambda request: metrics_endpoint(), methods=["GET"])
 
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+# @app.get("/health")
+# async def health():
+#     return {"status": "ok"}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await engine.dispose()
+
+
+app = FastAPI(title="Analytics Microservice", lifespan=lifespan)
+app.include_router(health_router)
