@@ -18,7 +18,6 @@ class TracingMiddleware(BaseHTTPMiddleware):
         #
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         request.state.request_id = request_id
-
         start = time.perf_counter()
         response = await call_next(request)
         duration_ms = (time.perf_counter() - start) * 1000
