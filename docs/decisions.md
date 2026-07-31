@@ -49,3 +49,14 @@ revisit Option B in MICRO-2.1 when write-heavy endpoint tests make speed matter.
 2026-07 | NullPool for engine when TESTING=1 | asyncpg connections bind to their event loop; pooling caches them across pytest's per-test loops → "attached to a different loop". NullPool opens fresh per session. Prod keeps the real pool.
 2026-07 | asyncio_mode=auto | async tests run without per-test marks; silences pytestmark-on-sync-test warnings
  Think of a database connection like a phone call, and the "event loop" as the specific phone line that call is running on. In async Python, once you start a call on a particular line, it only works on that line — you can't pick up the handset on a different line and expect the same call to be there. Now, a connection pool is like keeping a few calls on hold so you can reuse them instead of dialing fresh every time — great for a real running app, because the app has one phone line open all day. But when you run tests, the testing tool hangs up the whole phone system and sets up a brand-new line for each test. So a pooled connection that was put on hold during one test tries to get reused in the next test — except that line was already torn down. The connection reaches for a phone line that no longer exists, and you get "event loop is closed" or "attached to a different loop." The fix, NullPool, simply says "don't put any calls on hold during tests" — every test dials a fresh connection on its own current line and hangs up cleanly when done. Nothing is ever carried over from a dead line, so the whole class of error disappears. In production we keep the pool (dialing fresh every time is wasteful when you've got one line open all day), but in tests, throwing the connection away each time is exactly what keeps things clean.
+| Error handler must jsonable_encode ValidationError details | raw exc.errors() contains Decimal/datetime; json.dumps can't serialize them → handler crashed → 422 became 500
+| Ingestion tests use autouse truncate fixture for isolation | re-runs accumulated rows; per-test unique ids masked it; truncate scoped to write tables gives real isolation (revisited from Sprint 2 deferral)
+
+<!-- 
+test-ingestion:
+	psql -h localhost -p 5432 -d test_db -c "TRUNCATE events, ingestion_batches RESTART IDENTITY CASCADE;"
+	TESTING=1 pytest tests/test_ingestion.py -v
+
+test-schema:
+	TESTING=1 pytest tests/test_schema.py tests/test_schemas.py tests/test_session.py -v
+test: test-schema test-ingestions -->

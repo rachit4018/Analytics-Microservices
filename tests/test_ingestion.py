@@ -9,13 +9,8 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
-from pathlib import Path
-import sys
 from src.models.session import AsyncSessionLocal
 from src.models.database import Event, IngestionBatch
-
-PROJECT_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 pytestmark = pytest.mark.asyncio
 

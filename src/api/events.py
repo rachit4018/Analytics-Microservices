@@ -23,7 +23,5 @@ async def create_events(
     request: Request,
     session: AsyncSession = Depends(get_db),
 ):
-    print("Endpoint reached")
     request_id = getattr(request.state, "request_id", None) or str(uuid.uuid4())
-    print("Endpoint:", getattr(request.state, "request_id", None))
     return await ingest_events(session, payload.events, request_id)

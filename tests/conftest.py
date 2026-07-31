@@ -19,6 +19,8 @@ import subprocess
 import pytest
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+import pytest_asyncio
+from src.models.session import AsyncSessionLocal
 
 # Loaded at import time — before test modules are collected.
 # override=False means a variable already exported in your shell wins.
@@ -104,3 +106,19 @@ def pytest_collection_modifyitems(items):
         return any(marker in item.name.lower() for marker in destructive_markers)
 
     items.sort(key=is_destructive)
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def clean_write_tables():
+    """Truncate tables that ingestion tests write to, before each test.
+
+    Runs before every test. events + ingestion_batches are the write targets
+    for MICRO-2.1; seeded read-only data in other tests is unaffected because
+    those tests reseed or don't depend on these tables being populated.
+    """
+    async with AsyncSessionLocal() as s:
+        await s.execute(
+            text("TRUNCATE events, ingestion_batches RESTART IDENTITY CASCADE")
+        )
+        await s.commit()
+    yield
