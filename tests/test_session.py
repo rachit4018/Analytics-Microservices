@@ -11,14 +11,9 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-import sys
-from pathlib import Path
-
 from src.models.session import AsyncSessionLocal, engine, get_db
 
 pytestmark = pytest.mark.asyncio
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 HAS_DB = os.environ.get("DATABASE_URL") is not None
 

@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.encoders import jsonable_encoder
 
 logger = logging.getLogger("analytics.errors")
 
@@ -34,10 +35,12 @@ def register_error_handlers(app: FastAPI) -> None:
     async def validation_handler(request: Request, exc: RequestValidationError):
         return JSONResponse(
             status_code=422,
-            content={
-                "error_code": "VALIDATION_ERROR",
-                "message": "Request payload failed validation",
-                "details": exc.errors(),
-                "request_id": getattr(request.state, "request_id", "unknown"),
-            },
+            content=jsonable_encoder(
+                {
+                    "error_code": "VALIDATION_ERROR",
+                    "message": "Request payload failed validation",
+                    "details": exc.errors(),
+                    "request_id": getattr(request.state, "request_id", "unknown"),
+                }
+            ),
         )
