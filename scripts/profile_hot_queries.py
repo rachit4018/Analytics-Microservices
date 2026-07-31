@@ -20,7 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/analytics"
+    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db"
 )
 
 MAX_LATENCY_MS = 50.0
@@ -67,19 +67,23 @@ async def run_performance_audit() -> None:
 
     async with engine.connect() as conn:
         # Pick a heavy user so per_user_history has rows to return.
-        busiest = await conn.execute(text(
-            "SELECT user_id FROM events GROUP BY user_id "
-            "ORDER BY count(*) DESC LIMIT 1;"
-        ))
+        busiest = await conn.execute(
+            text(
+                "SELECT user_id FROM events GROUP BY user_id "
+                "ORDER BY count(*) DESC LIMIT 1;"
+            )
+        )
         user_row = busiest.fetchone()
         if user_row is None:
             print("Error: events table is empty. Run the seed script first.")
             await engine.dispose()
             return
 
-        bounds = await conn.execute(text(
-            "SELECT min(occurred_at) AS min_t, max(occurred_at) AS max_t FROM events;"
-        ))
+        bounds = await conn.execute(
+            text(
+                "SELECT min(occurred_at) AS min_t, max(occurred_at) AS max_t FROM events;"
+            )
+        )
         min_t, max_t = bounds.fetchone()
 
         params = {
@@ -112,9 +116,13 @@ async def run_performance_audit() -> None:
             if m:
                 exec_ms = float(m.group(1))
                 if exec_ms < MAX_LATENCY_MS:
-                    print(f"  Latency     : {exec_ms:.3f} ms  (PASS, < {MAX_LATENCY_MS} ms)")
+                    print(
+                        f"  Latency     : {exec_ms:.3f} ms  (PASS, < {MAX_LATENCY_MS} ms)"
+                    )
                 else:
-                    print(f"  Latency     : {exec_ms:.3f} ms  (FAIL, >= {MAX_LATENCY_MS} ms)")
+                    print(
+                        f"  Latency     : {exec_ms:.3f} ms  (FAIL, >= {MAX_LATENCY_MS} ms)"
+                    )
                     all_passed = False
             else:
                 print("  Latency     : could not parse Execution Time")
@@ -125,9 +133,11 @@ async def run_performance_audit() -> None:
                 print(f"    {line}")
 
         print("\n" + "=" * 60)
-        print("AUDIT PASSED — all hot queries within latency budget"
-              if all_passed else
-              "AUDIT FAILED — a query exceeded the latency budget")
+        print(
+            "AUDIT PASSED — all hot queries within latency budget"
+            if all_passed
+            else "AUDIT FAILED — a query exceeded the latency budget"
+        )
         print("=" * 60)
 
     await engine.dispose()

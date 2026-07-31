@@ -1,0 +1,33 @@
+# Retro action item #1 — style never reaches code review again.
+#
+# Setup (run once):
+#   pip install pre-commit
+#   pre-commit install
+#
+# From then on `git commit` auto-runs these. If a hook modifies a file,
+# the commit aborts — re-add the file and commit again.
+#
+# Run manually across the repo:
+#   pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        args: ["--max-line-length=100", "--extend-ignore=E203"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      # - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: detect-private-key   # would have caught the hardcoded DB creds
