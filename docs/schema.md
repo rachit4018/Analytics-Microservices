@@ -246,3 +246,18 @@ roughly 65% of all events. This doesn't affect the query-plan findings above (th
 don't depend on the shape of the user distribution), but it will bias per-user
 features going into Isolation Forest training. Filed as a follow-up to fix before
 MICRO-3.1.
+
+The number is the headline of your ticket
+Path	Throughput	What it includes
+Raw bulk insert (seed script)	~40,000/sec	Postgres INSERT only
+Full HTTP stack (this test)	~34,000/sec	+ HTTP, Pydantic validation of every event, session management, batch audit write, JSON serialization
+
+The HTTP + validation + session layer costs only ~15% overhead. That's the sentence for your PR and your interview. And it's a good result — it means your API layer is thin and efficient; you're not losing performance to framework bloat. Most people assume the web layer is where time goes; you have data showing it's ~15%, and the real ceiling is Postgres itself.
+
+Why so cheap? Two reasons worth naming:
+
+Batching amortizes the HTTP cost. You pay HTTP/validation overhead once per 1,000 events, not per event. If you'd designed this as one-event-per-request, this number would be 100x worse. That's the architectural payoff of the bulk endpoint.
+Async concurrency — 5 batches in flight at once means while one request waits on Postgres, others are validating. The overlap hides latency.
+One honest caveat for the PR
+
+This is a laptop, single-process measurement — app, Postgres, and load generator all competing for the same cores. Real numbers would differ: separate machines, multiple uvicorn workers, network latency between client and server. Say so. "~34k/sec local, single-process; production throughput depends on worker count and network" is the credible framing. Overclaiming ("my API does 34k/sec!") is what gets caught in interviews; the caveated version is what earns trust.
