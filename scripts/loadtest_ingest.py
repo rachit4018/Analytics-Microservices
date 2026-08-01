@@ -59,23 +59,22 @@ async def main() -> None:
     # concurrency=5 and see how throughput changes. Note it in your PR.
 
     payload = make_batch(EVENTS_PER_BATCH)
-    start = time.perf_counter()
-    async with httpx.AsyncClient(timeout=60.0) as client:
 
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        start = time.perf_counter()
         # Sequential Logic
-        # for _ in range(BATCHES):
-        #     await send_batch(client,payload)
+        for _ in range(BATCHES):
+            await send_batch(client, payload)
 
         # Concurrency logic
-        concurrency = 5
-
-        for i in range(0, BATCHES, concurrency):
-            tasks = [
-                send_batch(client, payload)
-                for _ in range(min(concurrency, BATCHES - i))
-            ]
-        await asyncio.gather(*tasks)
-    elapsed = time.perf_counter() - start
+        # concurrency = 5
+        # for i in range(0, BATCHES, concurrency):
+        #     tasks = [
+        #         send_batch(client, payload)
+        #         for _ in range(min(concurrency, BATCHES - i))
+        #     ]
+        #     await asyncio.gather(*tasks)
+        elapsed = time.perf_counter() - start
     total_events = BATCHES * EVENTS_PER_BATCH
     throughput = total_events / elapsed
     print(f"Total events : {total_events}")
