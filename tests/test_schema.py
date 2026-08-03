@@ -17,7 +17,7 @@ from sqlalchemy import create_engine, inspect, text
 
 SYNC_URL = os.environ.get(
     "DATABASE_URL_SYNC",
-    "postgresql+psycopg2://postgres:postgres@localhost:5432/test_db",
+    "postgresql+psycopg2://analytics:analytics@127.0.0.1:5432/analytics",
 )
 
 

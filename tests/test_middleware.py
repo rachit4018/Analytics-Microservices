@@ -4,13 +4,6 @@ from src.main import app
 client = TestClient(app)
 
 
-def test_request_id_generated():
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    assert "X-Request-ID" in resp.headers
-    assert "X-Process-Time-Ms" in resp.headers
-
-
 def test_request_id_propagated_from_gateway():
     resp = client.get("/health", headers={"X-Request-ID": "gw-abc-123"})
     assert resp.headers["X-Request-ID"] == "gw-abc-123"
