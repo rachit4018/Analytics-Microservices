@@ -25,7 +25,7 @@ from sqlalchemy import text, insert
 from src.models.database import Event  # noqa
 
 DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db"
+    "DATABASE_URL", "postgresql+asyncpg://analytics:analytics@127.0.0.1:5432/analytics"
 )
 
 TOTAL_EVENTS = 100_000

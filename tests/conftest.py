@@ -36,7 +36,7 @@ def _sync_url() -> str:
         raise RuntimeError(
             "DATABASE_URL_SYNC is not set. Add it to .env with an EXPLICIT "
             "host and port, e.g. "
-            "postgresql+psycopg2://user:pass@localhost:5432/test_db"
+            "postgresql+psycopg2://analytics:analytics@127.0.0.1:5432/analytics"
         )
     return url
 
@@ -88,34 +88,39 @@ def bootstrap_database():
 
 
 def pytest_collection_modifyitems(items):
-    """Run destructive migration tests LAST.
+    """Order tests so destructive ones run last.
 
-    A test that does `alembic downgrade base` drops the events table and
-    therefore the 100k seeded rows. If it runs before the seed/index tests,
-    those fail with count=0 — which is exactly the order-dependent failure
-    you hit when running the full file versus `-k seed`.
-
-    Sorting here is a pragmatic fix. The cleaner long-term answer is to run
-    destructive schema tests as a SEPARATE pytest invocation in CI:
-        pytest tests/test_schema.py -k "orm or seed"
-        pytest tests/test_schema.py -k migration
+    Priority (lower runs first):
+      0 = normal tests (ORM, schemas, session, seed, query plans) — need the
+          seeded 100k rows intact
+      1 = migration/downgrade tests — drop and recreate the schema
+      2 = ingestion tests — write to events/ingestion_batches and are
+          truncated by the isolate fixture
     """
-    destructive_markers = ("downgrade", "migration")
 
-    def is_destructive(item) -> bool:
-        return any(marker in item.name.lower() for marker in destructive_markers)
+    def priority(item) -> int:
+        name = item.name.lower()
+        nodeid = item.nodeid.lower()
+        if "test_ingestion" in nodeid:
+            return 2
+        if any(m in name for m in ("downgrade", "migration")):
+            return 1
+        return 0
 
-    items.sort(key=is_destructive)
+    items.sort(key=priority)
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def clean_write_tables():
-    """Truncate tables that ingestion tests write to, before each test.
+async def isolate_ingestion_tests(request):
+    """Truncate write tables ONLY for ingestion tests.
 
-    Runs before every test. events + ingestion_batches are the write targets
-    for MICRO-2.1; seeded read-only data in other tests is unaffected because
-    those tests reseed or don't depend on these tables being populated.
+    Seed-dependent tests (test_schema.py) keep their 100k rows because this
+    fixture no-ops for them. One pytest invocation, correct isolation for both.
     """
+    if "test_ingestion" not in request.node.nodeid:
+        yield
+        return
+
     async with AsyncSessionLocal() as s:
         await s.execute(
             text("TRUNCATE events, ingestion_batches RESTART IDENTITY CASCADE")

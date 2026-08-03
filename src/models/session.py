@@ -17,7 +17,7 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db"
+    "DATABASE_URL", "postgresql+asyncpg://analytics:analytics@localhost:5432/analytics"
 )
 _TESTING = os.environ.get("TESTING") == "1"
 _pool_kwargs = (

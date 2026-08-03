@@ -17,6 +17,12 @@ A production-grade real-time analytics microservice with anomaly detection.
 [Redis Cache] → [API Responses]
 
 ## Quick Start
+docker-compose up -d          # postgres + redis
+cp .env.example .env
+alembic upgrade head
+python3 -m scripts.seed_events
+TESTING=1 pytest tests/ -v
+uvicorn src.main:app --reload
 
 ### Prerequisites
 - Python 3.10+

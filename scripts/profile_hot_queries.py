@@ -20,9 +20,8 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db"
+    "DATABASE_URL", "postgresql+asyncpg://analytics:analytics@localhost:5432/analytics"
 )
-
 MAX_LATENCY_MS = 50.0
 
 HOT_QUERIES = {
