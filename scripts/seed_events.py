@@ -16,12 +16,12 @@ import os
 import math
 import random
 from datetime import datetime, timedelta, timezone
-
 from faker import Faker
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text, insert
 
 # NOTE: import your finished models — 1.2a must be done first
+
 from src.models.database import Event  # noqa
 
 DATABASE_URL = os.environ.get(
@@ -32,7 +32,10 @@ TOTAL_EVENTS = 100_000
 BATCH_SIZE = 5_000
 ANOMALY_RATE = 0.02
 EVENT_TYPES = ["purchase", "trade", "claim", "refund", "transfer"]
+N_USERS = 5_000
+USER_IDS = list(range(1, N_USERS + 1))
 
+WEIGHTS = [1 / (rank**0.7) for rank in USER_IDS]
 fake = Faker()
 
 
@@ -75,7 +78,12 @@ def get_random_forced_time_past_date(now: datetime) -> datetime:
 # Helper Function for the Power Law (Light and Heavy User id generation)
 def power_law_user_id(n_users: int = 5_000) -> int:
     """Few heavy users, many light users. Provided — just call it."""
-    return min(int(random.paretovariate(1.5)), n_users)
+    # return min(int(random.paretovariate(1.5)), n_users)
+    return random.choices(
+        USER_IDS,
+        weights=WEIGHTS,
+        k=1,
+    )[0]
 
 
 def make_normal_event(now: datetime) -> dict:
