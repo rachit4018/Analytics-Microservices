@@ -12,8 +12,10 @@ from typing import List
 from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.anomalies import ANOMALIES_CACHE_PREFIX
 from src.models.database import Event, IngestionBatch
 from src.models.schemas import BatchReceipt, EventCreate
+from src.services.cache import cache_delete_pattern
 
 
 async def ingest_events(
@@ -36,6 +38,7 @@ async def ingest_events(
     batch.completed_at = datetime.now(timezone.utc)
     batch.failed_count = 0
     await session.commit()
+    await cache_delete_pattern(f"{ANOMALIES_CACHE_PREFIX}:*")
     return BatchReceipt(
         batch_id=batch.id, request_id=request_id, accepted=len(events), rejected=0
     )
