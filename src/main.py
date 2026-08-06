@@ -8,6 +8,7 @@ from src.models.session import engine
 from src.api.health import router as health_router
 from src.api.events import router as event_router
 from src.middleware.error_handler import register_error_handlers
+from src.api.anomalies import router as anomalies_router
 
 
 @asynccontextmanager
@@ -33,3 +34,4 @@ app.add_route("/metrics", lambda request: metrics_endpoint(), methods=["GET"])
 
 app.include_router(health_router)
 app.include_router(event_router)
+app.include_router(anomalies_router)

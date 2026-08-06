@@ -73,7 +73,7 @@ async def cache_set(key: str, value: Any, ttl: int = DEFAULT_TTL_SECONDS) -> boo
     handler — same tool applies here.
     """
     try:
-        await _client.set(key, jsonable_encoder(value), ex=ttl)
+        await _client.set(key, json.dumps(jsonable_encoder(value)), ex=ttl)
         return True
     except Exception:
         logger.warning("cache set failed, degrading to db", extra={"key": key})
